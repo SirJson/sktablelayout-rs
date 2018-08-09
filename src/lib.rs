@@ -210,6 +210,7 @@ pub enum LayoutOp {
     Row,
 }
 
+#[derive(Default)]
 pub struct TableLayout {
     pub cell_defaults:   CellProperties,
     pub row_defaults:    BTreeMap<u8, CellProperties>,
@@ -347,14 +348,7 @@ impl CellProperties {
 
 impl TableLayout {
     pub fn new() -> TableLayout {
-        TableLayout {
-            cell_defaults:   Default::default(),
-            row_defaults:    BTreeMap::new(),
-            column_defaults: BTreeMap::new(),
-            opcodes:         Vec::new(),
-            row: 0,
-            column: 0,
-        }
+        Default::default()
     }
 
     /// Calculates the number of rows and columns which exist in this table layout.
