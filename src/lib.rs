@@ -38,7 +38,7 @@ impl Size {
         }
     }
 
-    /// Divides the width and height by a givin division level. Used when
+    /// Divides the width and height by a given division level. Used when
     /// a size must be spread across multiple table cells.
     pub fn spread(&self, divisions: f32) -> Self {
         Size{
@@ -92,14 +92,14 @@ impl SizeGrouping {
     /// to layout rules specified by `flags`. Returns the X, Y coordinates
     /// as well as width and height of the box fitted to the area.
     pub fn box_fit(&self, area: &Size, flags: CellFlags) -> (f32, f32, f32, f32) {
-        // combine maximum width and area width, depending on if fill has been actiated
+        // combine maximum width and area width, depending on if fill has been activated
         let w = if flags.contains(CellFlags::FillHorizontal) {
             f32::min(self.maximum.width, area.width)
         } else {
             f32::min(self.preferred.width, area.width)
         };
 
-        // combine maximum height and area height, depending on if fill has been actiated
+        // combine maximum height and area height, depending on if fill has been activated
         let h = if flags.contains(CellFlags::FillVertical) {
             f32::min(self.maximum.height, area.height)
         } else {
