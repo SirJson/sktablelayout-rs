@@ -112,3 +112,20 @@ fn centered_layout() {
                     .preferred_size(Size{width: 32.0, height: 32.0}));
     engine.impose(64.0, 64.0);
 }
+
+#[test]
+fn padded_big_cell() {
+    let mut engine = TableLayout::new();
+    engine.with_cell(CellProperties::new()
+                    .callback(Box::new(|x, y, w, h| {
+                        println!("{} {} {} {}", x, y, w, h);
+                        assert_eq!(x, 16.0);
+                        assert_eq!(y, 16.0);
+                        assert_eq!(w, 32.0);
+                        assert_eq!(h, 32.0);
+                    }))
+                    .expand()
+                    .fill()
+                    .padding_all(16.0));
+    engine.impose(64.0, 64.0);
+}

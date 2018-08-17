@@ -7,7 +7,7 @@ use std::cmp::max;
 use std::collections::BTreeMap;
 
 /// Rectangle for padding and spacing constraints.
-#[derive(Clone)]
+#[derive(Default, Clone, Copy)]
 pub struct Rectangle {
     pub top:    f32,
     pub left:   f32,
@@ -174,6 +174,8 @@ pub struct CellProperties {
     pub flags: CellFlags,
     /// Controls how many columns this cell will occupy.
     pub colspan: u8,
+    /// Controls how many pixels are intentionally wasted around this cell.
+    pub padding: Rectangle,
     /// Applies positioning updates for this cell. Note that this
     /// value always becomes `None` when cloned, so you cannot set
     /// default callbacks for cell policies.
@@ -185,6 +187,7 @@ impl Default for CellProperties {
         CellProperties{
             size: Default::default(),
             flags: CellFlags::None,
+            padding: Default::default(),
             colspan: 1,
             callback: None,
         }
@@ -196,6 +199,7 @@ impl Clone for CellProperties {
         CellProperties{
             size: self.size.clone(),
             flags: self.flags,
+            padding: self.padding,
             colspan: self.colspan,
             callback: None,
         }
@@ -341,6 +345,45 @@ impl CellProperties {
 
     pub fn callback(mut self, fun: Box<PositioningFn>) -> Self {
         self.callback = Option::Some(fun);
+        self
+    }
+
+    /// Sets the padding around this cell to the supplied top, left, right and bottom values as
+    /// specified by a rectangle struct.
+    pub fn padding(mut self, pad: &Rectangle) -> Self {
+        self.padding = *pad;
+        self
+    }
+
+    pub fn padding_all(mut self, pad: f32) -> Self {
+        self.padding.top = pad;
+        self.padding.left = pad;
+        self.padding.bottom = pad;
+        self.padding.right = pad;
+        self
+    }
+
+    /// Sets the padding on the top side of this cell.
+    pub fn padding_top(mut self, pad: f32) -> Self {
+        self.padding.top = pad;
+        self
+    }
+
+    /// Sets the padding on the left side of this cell.
+    pub fn padding_left(mut self, pad: f32) -> Self {
+        self.padding.left = pad;
+        self
+    }
+
+    /// Sets the padding on the bottom side of this cell.
+    pub fn padding_bottom(mut self, pad: f32) -> Self {
+        self.padding.bottom = pad;
+        self
+    }
+
+    /// Sets the padding on the right side of this cell.
+    pub fn padding_right(mut self, pad: f32) -> Self {
+        self.padding.right = pad;
         self
     }
 }
