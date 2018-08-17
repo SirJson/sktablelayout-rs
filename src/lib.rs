@@ -517,12 +517,12 @@ impl TableLayout {
             }
         }
 
-	// Calculate error along height distribution
-	let mut error = height;
-	for c in &row_sizes {
-            // Error is what remains once we have given each row its preferred size.
-            error -= c.preferred.height;
-	}
+    	// Calculate error along height distribution
+    	let mut error = height;
+    	for c in &row_sizes {
+                // Error is what remains once we have given each row its preferred size.
+                error -= c.preferred.height;
+    	}
 
         if error > 0.0 { // Extra space; relax the layout if we need to
             // Figure out how many columns are expanding horizontally.
