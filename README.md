@@ -29,6 +29,26 @@ When a layout item is for any reason smaller than its available space, an anchor
 
 Conflicting anchor specifications are not an error, but the layout engine is free to ignore conflicting requests as it sees fit.
 
+## Padding
+Padding intentionally wastes space around the edges of an element.
+
+`.padding` allows you to provide your own `Rectangle` struct to specify all sides at once.
+
+`.padding_all` sets all padding edges to the same value.
+
+`.padding_top` sets the padding for the top edge.
+
+`.padding_left` sets the padding for the left edge.
+
+`.padding_right` sets the padding for the right edge.
+
+`.padding_bottom` sets the padding for the bottom edge.
+
+Padding is implemented as adding extra space around a cell's size preferences, yet not using that space when positioning an object at the final layout stage.
+
+### Sacrificial padding
+While not implemented, some layout engines will count padding as space that can be compacted when straining to fit a UI in a small space. 
+
 ## Uniform
 
 All cells that are set uniform will have the same size. In practice, this policy is not actually implemented right now.
@@ -47,6 +67,16 @@ test test::impose2x3 ... bench:       8,468 ns/iter (+/- 790)
 ```
 
 Note that imposing layouts does *not* rely on multi-threading and only needs to be done when the table's width or height is disturbed.
+
+# Changelog
+## 0.2
+Unit tests and implementation of cell padding.
+
+## 0.1.1
+Minor fixes and PRs.
+
+## 0.1
+Initial release.
 
 # Reference
 https://github.com/EsotericSoftware/tablelayout
