@@ -46,6 +46,14 @@ impl Size {
         }
     }
 
+    /// Adds padding from a supplied padding rectangle.
+    pub fn padded(&self, padding: Rectangle) -> Self {
+        Size{
+            width: self.width + padding.left + padding.right,
+            height: self.height + padding.top + padding.bottom,
+        }
+    }
+
     /// Returns whether this size should fit within another size.
     pub fn within(&self, other: &Size) -> bool {
         other.width > self.width && other.height > self.height
@@ -87,46 +95,59 @@ impl SizeGrouping {
         }
     }
 
+    pub fn padded(&self, padding: Rectangle) -> SizeGrouping {
+        SizeGrouping{
+            minimum:   self.minimum.padded(padding),
+            preferred: self.preferred.padded(padding),
+            maximum:   self.maximum.padded(padding),
+        }
+    }
+
     /// Attempts to fit an `item` of a given size within an `area`, subject
     /// to layout rules specified by `flags`. Returns the X, Y coordinates
     /// as well as width and height of the box fitted to the area.
-    pub fn box_fit(&self, area: &Size, flags: CellFlags) -> (f32, f32, f32, f32) {
+    pub fn box_fit(&self, area: &Size, prop: &CellProperties) -> (f32, f32, f32, f32) {
+        let pad_width  = prop.padding.left + prop.padding.right;
+        let pad_height = prop.padding.top  + prop.padding.bottom;
+
         // combine maximum width and area width, depending on if fill has been activated
-        let w = if flags.contains(CellFlags::FillHorizontal) {
-            f32::min(self.maximum.width, area.width)
+        let w = if prop.flags.contains(CellFlags::FillHorizontal) {
+            f32::min(self.maximum.width  , area.width - pad_width)
         } else {
-            f32::min(self.preferred.width, area.width)
+            f32::min(self.preferred.width, area.width - pad_width)
         };
 
         // combine maximum height and area height, depending on if fill has been activated
-        let h = if flags.contains(CellFlags::FillVertical) {
-            f32::min(self.maximum.height, area.height)
+        let h = if prop.flags.contains(CellFlags::FillVertical) {
+            f32::min(self.maximum.height  , area.height - pad_height)
         } else {
-            f32::min(self.preferred.height, area.height)
+            f32::min(self.preferred.height, area.height - pad_height)
         };
 
         // find horizontal location of output box
-        let x = if flags.contains(CellFlags::AnchorRight) {
+        let x = if prop.flags.contains(CellFlags::AnchorRight) {
             // take size of the area and remove width, will anchor us to the right side
-            area.width - w
-        } else if flags.contains(CellFlags::AnchorHorizontalCenter) {
+            area.width - prop.padding.right - w
+        } else if prop.flags.contains(CellFlags::AnchorHorizontalCenter) {
             // tricky because we have to find the midpoint, then adjust by half of width
+            // XXX this ought to still work, because the padding is on the "outside" of our center
             (area.width / 2.0) - (w / 2.0)
         } else {
             // AnchorLeft is the same as doing nothing, so we just put this on the left side.
-            0.0
+            prop.padding.left
         };
 
         // find vertical location of output box
-        let y = if flags.contains(CellFlags::AnchorBottom) {
+        let y = if prop.flags.contains(CellFlags::AnchorBottom) {
             // take size of the area and remove height, will anchor us to the top side
-            area.height - h
-        } else if flags.contains(CellFlags::AnchorHorizontalCenter) {
+            area.height - prop.padding.bottom - h
+        } else if prop.flags.contains(CellFlags::AnchorHorizontalCenter) {
             // tricky because we have to find the midpoint, then adjust by half of height
+            // XXX this ought to still work, because the padding is on the "outside" of our center
             (area.height / 2.0) - (h / 2.0)
         } else {
             // AnchorTop is the same as doing nothing, so we just put this on the top side.
-            0.0
+            prop.padding.top
         };
 
         (x, y, w, h)
@@ -482,7 +503,7 @@ impl TableLayout {
                         // If a cell has a span of zero, that is kind of stupid and it basically doesn't exist.
                         0 => {},
                         _ => {
-                            let midget = cp.size.spread(f32::from(cp.colspan));
+                            let midget = cp.size.padded(cp.padding).spread(f32::from(cp.colspan));
                             eprintln!("{:#?}", cp.flags);
                             row_sizes[row as usize] =
                                 SizeGrouping::join(&row_sizes[row as usize], &cp.size);
@@ -628,7 +649,7 @@ impl TableLayout {
                             col += 1;
                         }
                         let s = Size{width, height};
-                        let (bx, by, bw, bh) = cp.size.box_fit(&s, cp.flags);
+                        let (bx, by, bw, bh) = cp.size.box_fit(&s, &cp);
 
                         // Run callback to impose layout.
                         match &mut cp.callback {
