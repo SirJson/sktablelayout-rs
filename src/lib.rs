@@ -25,14 +25,14 @@ pub struct Size {
 impl Size {
     pub fn join_max(a: &Size, b: &Size) -> Self {
         Size{
-            width: f32::max(a.width, b.width),
+            width:  f32::max(a.width, b.width),
             height: f32::max(a.height, b.height),
         }
     }
 
     pub fn join_min(a: &Size, b: &Size) -> Self {
         Size{
-            width: f32::min(a.width, b.width),
+            width:  f32::min(a.width, b.width),
             height: f32::min(a.height, b.height),
         }
     }
@@ -41,7 +41,7 @@ impl Size {
     /// a size must be spread across multiple table cells.
     pub fn spread(&self, divisions: f32) -> Self {
         Size{
-            width: self.width / divisions,
+            width:  self.width / divisions,
             height: self.height / divisions,
         }
     }
@@ -49,7 +49,7 @@ impl Size {
     /// Adds padding from a supplied padding rectangle.
     pub fn padded(&self, padding: Rectangle) -> Self {
         Size{
-            width: self.width + padding.left + padding.right,
+            width:  self.width + padding.left + padding.right,
             height: self.height + padding.top + padding.bottom,
         }
     }
@@ -190,13 +190,13 @@ pub type PositioningFn = FnMut(f32, f32, f32, f32);
 /// Encapsulates all properties for a cell; contributes to eventual layout decisions.
 pub struct CellProperties {
     /// Controls the desired sizes for this cell.
-    pub size: SizeGrouping,
+    pub size:     SizeGrouping,
     /// Controls various binary flags for the cell.
-    pub flags: CellFlags,
+    pub flags:    CellFlags,
     /// Controls how many columns this cell will occupy.
-    pub colspan: u8,
+    pub colspan:  u8,
     /// Controls how many pixels are intentionally wasted around this cell.
-    pub padding: Rectangle,
+    pub padding:  Rectangle,
     /// Applies positioning updates for this cell. Note that this
     /// value always becomes `None` when cloned, so you cannot set
     /// default callbacks for cell policies.
@@ -206,10 +206,10 @@ pub struct CellProperties {
 impl Default for CellProperties {
     fn default() -> Self {
         CellProperties{
-            size: Default::default(),
-            flags: CellFlags::None,
-            padding: Default::default(),
-            colspan: 1,
+            size:     Default::default(),
+            flags:    CellFlags::None,
+            padding:  Default::default(),
+            colspan:  1,
             callback: None,
         }
     }
@@ -218,10 +218,10 @@ impl Default for CellProperties {
 impl Clone for CellProperties {
     fn clone(&self) -> Self {
         CellProperties{
-            size: self.size.clone(),
-            flags: self.flags,
-            padding: self.padding,
-            colspan: self.colspan,
+            size:     self.size.clone(),
+            flags:    self.flags,
+            padding:  self.padding,
+            colspan:  self.colspan,
             callback: None,
         }
     }
@@ -377,10 +377,10 @@ impl CellProperties {
     }
 
     pub fn padding_all(mut self, pad: f32) -> Self {
-        self.padding.top = pad;
-        self.padding.left = pad;
+        self.padding.top    = pad;
+        self.padding.left   = pad;
         self.padding.bottom = pad;
-        self.padding.right = pad;
+        self.padding.right  = pad;
         self
     }
 
@@ -423,7 +423,7 @@ impl TableLayout {
         for op in &self.opcodes {
             match op {
                 LayoutOp::Cell(cp) => { colcur += cp.colspan },
-                LayoutOp::Row => { cols = max(cols, colcur); colcur = 0; rows += 1 },
+                LayoutOp::Row      => { cols = max(cols, colcur); colcur = 0; rows += 1 },
             }
         }
 
@@ -471,7 +471,6 @@ impl TableLayout {
 
         let (total_rows, total_cols) = self.get_rows_cols();
         if total_cols == 0 {return} // short-circuiting opportunity
-        eprintln!("Imposing matrix: {}x{}", total_rows, total_cols);
 
         let mut col_sizes: Vec<SizeGrouping> = Vec::with_capacity(total_cols as usize);
         // XXX resize_with is unstable, but would do what we want just fine
@@ -504,16 +503,13 @@ impl TableLayout {
                         0 => {},
                         _ => {
                             let midget = cp.size.padded(cp.padding).spread(f32::from(cp.colspan));
-                            eprintln!("{:#?}", cp.flags);
                             row_sizes[row as usize] =
                                 SizeGrouping::join(&row_sizes[row as usize], &cp.size);
                             if cp.flags.contains(CellFlags::ExpandVertical) {
-                                eprintln!("flagging row {} for x-expansion", row);
                                 has_yexpand[row as usize] = true
                             }
                             for _i in 0..cp.colspan {
                                 if cp.flags.contains(CellFlags::ExpandHorizontal) {
-                                    eprintln!("flagging col {} for x-expansion", col);
                                     has_xexpand[col as usize] = true
                                 }
                                 col_sizes[col as usize] = SizeGrouping::join(&col_sizes[col as usize], &midget);
@@ -545,7 +541,6 @@ impl TableLayout {
             if expansions > 0 {
                 let amount = error / expansions as f32;
                 for (i, e) in has_xexpand.iter().enumerate() {
-                    eprintln!("Expanding column {} = {}", i, e);
                     if *e {
                         col_sizes[i].preferred.width += amount;
                     }
@@ -553,7 +548,6 @@ impl TableLayout {
             }
         } else if error < 0.0 { // Not enough space; tense up some more!
             let error = -error;
-            eprintln!("Error {}", error);
             // We need to find slack space for each column
             let mut total_slack: f32 = 0.0;
             slack.clear();
@@ -562,15 +556,12 @@ impl TableLayout {
                 slack[i] = x;
                 total_slack += x;
             }
-            eprintln!("Total width slack: {}", total_slack);
 
             // XXX if error > total_slack, it is impossible to solve this constraint
             // spread error across slack space, proportionate to this areas slack participation
             for mut s in &mut slack {
                 let norm = *s / total_slack;
                 let error_over_slack = error * norm;
-                eprintln!("slack contribution {}", norm);
-                eprintln!("error over slack {}", error_over_slack);
                 *s -= error_over_slack
             }
 
@@ -594,7 +585,6 @@ impl TableLayout {
             if expansions > 0 {
                 let amount = error / expansions as f32;
                 for (i, e) in has_yexpand.iter().enumerate() {
-                    eprintln!("Expanding row {} = {}", i, e);
                     if *e {
                         row_sizes[i].preferred.height += amount;
                     }
@@ -602,7 +592,6 @@ impl TableLayout {
             }
         } else if error < 0.0 { // Not enough space; tense up some more!
             let error = -error;
-            eprintln!("Error {}", error);
             // We need to find slack space for each row
             let mut total_slack: f32 = 0.0;
             slack.clear();
@@ -611,15 +600,12 @@ impl TableLayout {
                 slack[i] = y;
                 total_slack += y;
             }
-            eprintln!("Total height slack: {}", total_slack);
 
             // XXX if error > total_slack, it is impossible to solve this constraint
             // spread error across slack space, proportionate to this areas slack participation
             for mut s in &mut slack {
                 let norm = *s / total_slack;
                 let error_over_slack = error * norm;
-                eprintln!("slack contribution {}", norm);
-                eprintln!("error over slack {}", error_over_slack);
                 *s -= error_over_slack
             }
 
