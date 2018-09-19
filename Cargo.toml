@@ -1,6 +1,6 @@
 [package]
 name = "sktablelayout-rs"
-version = "0.2.0"
+version = "0.2.1"
 repository = "https://github.com/Skrylar/sktablelayout-rs"
 authors = ["Joshua Cearley <joshua.cearley@gmail.com>"]
 description = "Table/grid based layout engine. Rule-based and framework agnostic."
@@ -13,4 +13,3 @@ license = "BSD-3-Clause"
 
 [lib]
 name="sktablelayout"
-
